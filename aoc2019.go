@@ -6,8 +6,22 @@ import (
 	"github.com/qoeg/aoc2019/day01"
 )
 
+var days = map[int]func(){
+	1: d1,
+}
+
 func main() {
-	d1()
+	//TODO: add CLI for selecting days
+	selected := []int{1}
+
+	for k, v := range days {
+		for _, i := range selected {
+			if k == i {
+				v()
+				fmt.Println()
+			}
+		}
+	}
 }
 
 func d1() {
