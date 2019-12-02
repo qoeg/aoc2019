@@ -4,28 +4,47 @@ import (
 	"fmt"
 
 	"github.com/qoeg/aoc2019/day01"
+	"github.com/qoeg/aoc2019/day02"
 )
 
-var days = map[int]func(){
-	1: d1,
+type day struct {
+	key int
+	fun func()
+}
+
+var days = []day{
+	{1, d1},
+	{2, d2},
 }
 
 func main() {
 	//TODO: add CLI for selecting days
-	selected := []int{1}
+	selected := []int{}
 
-	for k, v := range days {
+	var d day
+	var found bool
+	for _, d = range days {
 		for _, i := range selected {
-			if k == i {
-				v()
-				fmt.Println()
+			if d.key == i {
+				fmt.Printf("Day %d\n", d.key)
+				d.fun()
+				found = true
 			}
 		}
 	}
+
+	if !found {
+		fmt.Printf("Day %d\n", d.key)
+		d.fun()
+	}
+}
+
+func d2() {
+	fmt.Printf("Puzzle 1 Answer: %s\n", day02.Answer1())
+	fmt.Printf("Puzzle 2 Answer: %s\n", day02.Answer2())
 }
 
 func d1() {
-	fmt.Print("Day 1\n")
 	fmt.Printf("Puzzle 1 Answer: %s\n", day01.Answer1())
 	fmt.Printf("Puzzle 2 Answer: %s\n", day01.Answer2())
 }
