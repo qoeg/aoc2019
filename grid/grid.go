@@ -2,10 +2,39 @@ package grid
 
 import (
 	"fmt"
+
+	"github.com/qoeg/aoc2019/util"
 )
 
 // Grid represents a two dimensional grid of cells
 type Grid [][]Cell
+
+// Draw updates cells in the Grid with new cells
+func (g Grid) Draw(line []Cell) {
+	for i := range line {
+		coord := line[i].Pos()
+		if i > 0 && g[coord.X][coord.Y].Mark() != '.' {
+			if found, _ := util.Contains(line, line[i]); !found {
+				line[i].mark = 'X'
+			}
+		}
+
+		g[coord.X][coord.Y] = line[i]
+	}
+}
+
+// NewGrid initializes a new Grid with the specified dimensions
+func NewGrid(width, height int) (g Grid) {
+	g = make([][]Cell, width)
+	for x := 0; x < width; x++ {
+		g[x] = make([]Cell, height)
+		for y := 0; y < height; y++ {
+			g[x][y] = NewCell('.', Coordinate{x, y})
+		}
+	}
+
+	return g
+}
 
 // Clone creates a new clone of the Grid
 func (g Grid) Clone() Grid {

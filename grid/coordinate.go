@@ -15,6 +15,11 @@ func (c Coordinate) Pos() Coordinate {
 	return c
 }
 
+// Distance gets the Manhatten distance between two coordinates
+func Distance(coord1, coord2 Coordinate) int {
+	return int(math.Abs(float64(coord1.X - coord2.X)) + math.Abs(float64(coord1.Y - coord2.Y)))
+}
+
 // MinX finds the minimum X value from a slice of Coordinates
 func MinX(coords []Coordinate) int {
 	min := math.MaxInt32
