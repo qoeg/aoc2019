@@ -6,6 +6,7 @@ import (
 	"github.com/qoeg/aoc2019/day01"
 	"github.com/qoeg/aoc2019/day02"
 	"github.com/qoeg/aoc2019/day03"
+	"github.com/qoeg/aoc2019/day04"
 )
 
 type day struct {
@@ -18,6 +19,7 @@ var days = []day{
 	{1, day01.Answer1, day01.Answer2},
 	{2, day02.Answer1, day02.Answer2},
 	{3, day03.Answer1, day03.Answer2},
+	{4, day04.Answer1, day04.Answer2},
 }
 
 func main() {
