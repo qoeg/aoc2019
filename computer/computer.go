@@ -1,77 +1,87 @@
 package computer
 
 import (
-	//"fmt"
+	"fmt"
 )
 
-type instruction struct {
-	opcode int
-	parameters int
-	parameterModes []int
-}
-
-func getInstruction(value int) instruction {
-	var parameters int
-	var parameterModes []int
-	
-	opcode := value % 100
-
-	switch opcode {
-	case 1:
-	case 2:
-		parameters = 3
-		parameterModes = make([]int, 3)
-		parameterModes[0] = (value / 100) % 10
-		parameterModes[1] = (value / 1000) % 10
-		parameterModes[2] = (value / 10000) % 10
-	case 3:
-	case 4:
-		parameters = 1
-		parameterModes = make([]int, 1)
-		parameterModes[0] = (value / 100) % 10
-	case 99:
-		parameters = 0
-		parameterModes = make([]int, 0)
-	default:
-		panic("Cannot compute opcode. Unknown operation.")
-	}
-
-	return instruction{
-		opcode,
-		parameters,
-		parameterModes,
-	}
-}
-
 // Run runs the computer
-func Run(intcode []int) []int {
+func Run(intcode []int, input int, verbose bool) (int, []int) {
 	pointer := 0
+	output := 0
 
+	code := make([]int, len(intcode))
+	copy(code, intcode)
+	
 	for {
-		instr := getInstruction(intcode[pointer])
+		jump := false
+		instr := newInstruction(code[pointer], pointer)
 		if instr.opcode == 99 {
 			break
 		}
 
-		var result int
-
 		switch instr.opcode {
 		case 1:
-			result = intcode[intcode[pointer+1]] + intcode[intcode[pointer+2]]
-			intcode[intcode[pointer+3]] = result
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			code[code[pointer+3]] = param1 + param2
+			if verbose {
+				fmt.Printf("*%v = %v + %v\n", code[pointer+3], param1, param2)
+			}
 		case 2:
-			result = intcode[intcode[pointer+1]] * intcode[intcode[pointer+2]]
-			intcode[intcode[pointer+3]] = result
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			code[code[pointer+3]] = param1 * param2
+			if verbose {
+				fmt.Printf("*%v = %v * %v\n", code[pointer+3], param1, param2)
+			}
 		case 3:
-			// Take input and store at intcode[intcode[pointer+1]]
+			code[code[pointer+1]] = input
+			if verbose {
+				fmt.Printf("*%v = %v\n", code[pointer+1], input)
+			}
 		case 4:
-			// Output value stored at intcode[intcode[pointer+1]]
+			output = instr.parameter(1, code)
+			if verbose {
+				fmt.Printf("TEST Output = %v (*%v)\n", output, code[pointer+1])
+			}
+		case 5:
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			if param1 != 0 {
+				pointer = param2
+				jump = true
+			}
+		case 6:
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			if param1 == 0 {
+				pointer = param2
+				jump = true
+			}
+		case 7:
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			if param1 < param2 {
+				code[code[pointer+3]] = 1
+			} else {
+				code[code[pointer+3]] = 0
+			}
+		case 8:
+			param1 := instr.parameter(1, code)
+			param2 := instr.parameter(2, code)
+			if param1 == param2 {
+				code[code[pointer+3]] = 1
+			} else {
+				code[code[pointer+3]] = 0
+			}
 		default:
-			panic("Cannot compute opcode. Unknown operation.")
+			panic("Unknown operation.")
 		}
 		
-		pointer += instr.parameters + 1
+		if !jump {
+			pointer += instr.parameters + 1
+		}
 	}
 
-	return intcode
+	return output, code
 }
