@@ -5,20 +5,20 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/qoeg/aoc2019/grid"
+	"github.com/qoeg/aoc2019/spatial"
 )
 
 var intersections []*intersection
 
 type intersection struct {
-	coord grid.Coordinate
+	coord spatial.Coordinate
 	l1steps int
 	l2steps int
 }
 
-func getLine(start grid.Coordinate, ops []string) []grid.Cell {
+func getLine(start spatial.Coordinate, ops []string) []spatial.Cell {
 	cursor := start
-	line := []grid.Cell{grid.NewCell('o', grid.Coordinate{X:cursor.X, Y:cursor.Y})}
+	line := []spatial.Cell{spatial.NewCell('o', spatial.Coordinate{X:cursor.X, Y:cursor.Y})}
 	index := 1
 
 	for k, op := range ops {
@@ -30,10 +30,10 @@ func getLine(start grid.Coordinate, ops []string) []grid.Cell {
 			break
 		}
 
-		line = append(line, make([]grid.Cell, dist)...)
+		line = append(line, make([]spatial.Cell, dist)...)
 
 		if k > 0 {
-			line[index-1] = grid.NewCell('+', grid.Coordinate{X:cursor.X, Y:cursor.Y})
+			line[index-1] = spatial.NewCell('+', spatial.Coordinate{X:cursor.X, Y:cursor.Y})
 		}
 
 		for count := 0; count < dist; count++ {
@@ -53,7 +53,7 @@ func getLine(start grid.Coordinate, ops []string) []grid.Cell {
 				mark = '|'
 			}
 
-			line[index] = grid.NewCell(mark, grid.Coordinate{X:cursor.X, Y:cursor.Y})
+			line[index] = spatial.NewCell(mark, spatial.Coordinate{X:cursor.X, Y:cursor.Y})
 			index++
 		}
 	}
@@ -61,8 +61,8 @@ func getLine(start grid.Coordinate, ops []string) []grid.Cell {
 	return line
 }
 
-func getIntersections(start grid.Coordinate, line1, line2 []grid.Cell) []*intersection {
-	lookup := map[grid.Coordinate]*intersection{}
+func getIntersections(start spatial.Coordinate, line1, line2 []spatial.Cell) []*intersection {
+	lookup := map[spatial.Coordinate]*intersection{}
 	intrs := []*intersection{}
 
 	for i := range line1 {
@@ -86,10 +86,10 @@ func getIntersections(start grid.Coordinate, line1, line2 []grid.Cell) []*inters
 	return intrs
 }
 
-func getMinDistance(start grid.Coordinate, intrs []*intersection) int {
+func getMinDistance(start spatial.Coordinate, intrs []*intersection) int {
 	min := math.MaxInt32
 	for _, intr := range intrs {
-		dist := grid.Distance(start, intr.coord)
+		dist := spatial.Distance(start, intr.coord)
 		if dist < min {
 			min = dist
 		}
@@ -98,7 +98,7 @@ func getMinDistance(start grid.Coordinate, intrs []*intersection) int {
 }
 
 func test1() int {
-	start := grid.Coordinate{X:0, Y:0}
+	start := spatial.Coordinate{X:0, Y:0}
 	line1 := getLine(start, []string{"R8","U5","L5","D3"})
 	line2 := getLine(start, []string{"U7","R6","D4","L4"})
 	intersections = getIntersections(start, line1, line2)
@@ -107,7 +107,7 @@ func test1() int {
 }
 
 func test2() int {
-	start := grid.Coordinate{X:0, Y:0}
+	start := spatial.Coordinate{X:0, Y:0}
 	line1 := getLine(start, []string{"R75","D30","R83","U83","L12","D49","R71","U7","L72"})
 	line2 := getLine(start, []string{"U62","R66","U55","R34","D71","R55","D58","R83"})
 	intersections = getIntersections(start, line1, line2)
@@ -116,7 +116,7 @@ func test2() int {
 }
 
 func test3() int {
-	start := grid.Coordinate{X:0, Y:0}
+	start := spatial.Coordinate{X:0, Y:0}
 	line1 := getLine(start, []string{"R98","U47","R26","D63","R33","U87","L62","D20","R33","U53","R51"})
 	line2 := getLine(start, []string{"U98","R91","D20","R16","D67","R40","U7","R15","U6","R7"})
 	intersections = getIntersections(start, line1, line2)
@@ -126,7 +126,7 @@ func test3() int {
 
 // Answer1 returns the first puzzle answer
 func Answer1() string {
-	start := grid.Coordinate{X:0, Y:0}
+	start := spatial.Coordinate{X:0, Y:0}
 	line1 := getLine(start, Wire1)
 	line2 := getLine(start, Wire2)
 	intersections = getIntersections(start, line1, line2)
