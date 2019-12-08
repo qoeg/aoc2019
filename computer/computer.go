@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Program represents an intcode computer program
 type Program struct {
 	id int
 	pointer int
@@ -13,6 +14,7 @@ type Program struct {
 	Exit chan int
 }
 
+// New creates a new intcode computer program with an ID
 func New(id int, intcode []int) *Program {
 	code := make([]int, len(intcode))
 	copy(code, intcode)
