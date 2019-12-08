@@ -7,16 +7,6 @@ type instruction struct {
 	parameterModes []int
 }
 
-func (in instruction) parameter(num int, intcode []int) (value int) {
-	position := intcode[in.pointer+num]
-
-	value = position
-	if in.parameterModes[num-1] == 0 {
-		value = intcode[position]
-	}
-	return value
-}
-
 func newInstruction(value, pointer int) instruction {
 	var parameters int
 	var parameterModes []int
@@ -52,4 +42,14 @@ func newInstruction(value, pointer int) instruction {
 		parameters,
 		parameterModes,
 	}
+}
+
+func (in instruction) parameter(num int, intcode []int) (value int) {
+	position := intcode[in.pointer+num]
+
+	value = position
+	if in.parameterModes[num-1] == 0 {
+		value = intcode[position]
+	}
+	return value
 }

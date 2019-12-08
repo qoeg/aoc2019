@@ -7,12 +7,20 @@ import (
 
 // Answer1 returns the first puzzle answer
 func Answer1() string {
-	output, _ := computer.Run(Input, 1, false)
-	return strconv.Itoa(output)
+	c := computer.New(1, Input)
+	c.Input <- 1
+
+	result := c.Run(false)
+
+	return strconv.Itoa(result)
 }
 
 // Answer2 returns the second puzzle answer
 func Answer2() string {
-	output, _ := computer.Run(Input, 5, false)
-	return strconv.Itoa(output)
+	c := computer.New(2, Input)
+	c.Input <- 5
+
+	result := c.Run(false)
+
+	return strconv.Itoa(result)
 }
