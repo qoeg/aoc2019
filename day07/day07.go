@@ -6,15 +6,13 @@ import (
 	"github.com/qoeg/aoc2019/computer"
 )
 
-var print = false
-
 func amplify(intcode, sequence []int, signal int) int {
 	for i := range sequence {
 		c := computer.New(i, intcode)
 		c.Input <- sequence[i]
 		c.Input <- signal
 
-		go c.Run(print)
+		go c.Run(false)
 
 		signal = <-c.Output
 	}
