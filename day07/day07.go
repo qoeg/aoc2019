@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strconv"
 	"github.com/qoeg/aoc2019/computer"
+	"github.com/qoeg/aoc2019/util"
 )
 
 func amplify(intcode, sequence []int, signal int) int {
@@ -55,30 +56,9 @@ func amplifyLoop(intcode, sequence []int, signal int) int {
 	}()
 }
 
-func permutations(set []int) [][]int {
-	result := [][]int{}
-
-	var rc func([]int, int)
-	rc = func(a []int, k int) {
-		if k == len(a) {
-			result = append(result, append([]int{}, a...))
-			return
-		}
-
-		for i := k; i < len(set); i++ {
-			a[k], a[i] = a[i], a[k]
-			rc(a, k+1)
-			a[k], a[i] = a[i], a[k]
-		}
-	}
-	rc(set, 0)
-	
-	return result
-}
-
 // Answer1 returns the first puzzle answer
 func Answer1() string {
-	sequences := permutations([]int{0,1,2,3,4})
+	sequences := util.Permutations([]int{0,1,2,3,4})
 
 	signals := make([]int, len(sequences))
 	for i, seq := range sequences {
@@ -92,7 +72,7 @@ func Answer1() string {
 
 // Answer2 returns the second puzzle answer
 func Answer2() string {
-	sequences := permutations([]int{5,6,7,8,9})
+	sequences := util.Permutations([]int{5,6,7,8,9})
 
 	signals := make([]int, len(sequences))
 	for i, seq := range sequences {

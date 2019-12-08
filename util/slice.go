@@ -34,3 +34,25 @@ func Interact(slice interface{}, item interface{}, act func(int, interface{})) e
 	
 	return nil
 }
+
+// Permutations generates all of the permutations for the elements in the given slice
+func Permutations(slice []int) [][]int {
+	result := [][]int{}
+
+	var rc func([]int, int)
+	rc = func(a []int, k int) {
+		if k == len(a) {
+			result = append(result, append([]int{}, a...))
+			return
+		}
+
+		for i := k; i < len(slice); i++ {
+			a[k], a[i] = a[i], a[k]
+			rc(a, k+1)
+			a[k], a[i] = a[i], a[k]
+		}
+	}
+	rc(slice, 0)
+	
+	return result
+}
