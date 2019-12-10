@@ -7,13 +7,13 @@ import (
 	"github.com/qoeg/aoc2019/util"
 )
 
-func amplify(intcode, sequence []int, signal int) int {
+func amplify(intcode, sequence []int, signal int64) int64 {
 	for i := range sequence {
-		c := computer.New(i, intcode)
-		c.Input <- sequence[i]
-		c.Input <- signal
+		c := computer.New(i, computer.Config{})
+		c.Input <- int64(sequence[i])
+		c.Input <- int64(signal)
 
-		go c.Run(false)
+		go c.Run(intcode)
 
 		signal = <-c.Output
 	}
@@ -21,17 +21,17 @@ func amplify(intcode, sequence []int, signal int) int {
 	return signal
 }
 
-func amplifyLoop(intcode, sequence []int, signal int) int {
+func amplifyLoop(intcode, sequence []int, signal int64) int64 {
 	var amplifiers = make(map[int]*computer.Program, 5)
 
 	for i := range sequence {
-		p := computer.New(i, intcode)
-		p.Input <- sequence[i]
-		go p.Run(false)
+		p := computer.New(i, computer.Config{})
+		p.Input <- int64(sequence[i])
+		go p.Run(intcode)
 		amplifiers[i] = p
 	}
 
-	return func() int {
+	return func() int64 {
 		amplifiers[0].Input <- signal
 		for {
 			select {
@@ -62,7 +62,7 @@ func Answer1() string {
 
 	signals := make([]int, len(sequences))
 	for i, seq := range sequences {
-		signals[i] = amplify(Input, seq, 0)
+		signals[i] = int(amplify(Input, seq, 0))
 	}
 
 	sort.Ints(signals)
@@ -76,7 +76,7 @@ func Answer2() string {
 
 	signals := make([]int, len(sequences))
 	for i, seq := range sequences {
-		signals[i] = amplifyLoop(Input, seq, 0)
+		signals[i] = int(amplifyLoop(Input, seq, 0))
 	}
 
 	sort.Ints(signals)
