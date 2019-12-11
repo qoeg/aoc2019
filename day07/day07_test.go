@@ -8,12 +8,12 @@ func Test_amplify(t *testing.T) {
 	type args struct {
 		intcode  []int
 		sequence []int
-		signal   int
+		signal   int64
 	}
 	tests := []struct {
 		name string
 		args args
-		want int
+		want int64
 	}{
 		{
 			"Test 1",
@@ -56,12 +56,12 @@ func Test_amplifyLoop(t *testing.T) {
 	type args struct {
 		intcode  []int
 		sequence []int
-		signal   int
+		signal   int64
 	}
 	tests := []struct {
 		name string
 		args args
-		want int
+		want int64
 	}{
 		{
 			"Test 1",
