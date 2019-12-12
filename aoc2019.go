@@ -38,7 +38,7 @@ var days = []day{
 
 func main() {
 	//TODO: add CLI for selecting days
-	selected := []int{1,2,3,4,5,6,7,8,9,10,11}
+	selected := []int{}
 
 	var d day
 	var found bool
