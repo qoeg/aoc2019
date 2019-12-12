@@ -111,7 +111,6 @@ func (g Grid) Print(masks ...Cell) {
 		}
 		fmt.Println()
 	}
-	fmt.Println()
 }
 
 // With creates a clone of the Grid with the provided cells as replacements

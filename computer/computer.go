@@ -32,7 +32,7 @@ func New(id int, config Config) *Program {
 		memory: []int64{},
 		config: config,
 		Input: make(chan int64, 2),
-		Output: make(chan int64, 1),
+		Output: make(chan int64, 100),
 		Exit: make(chan int64, 1),
 	}
 }
@@ -100,9 +100,9 @@ func run(p *Program) (result int64) {
 			}
 		case 4:
 			result = instr.read(1)
-			if len(p.Output) > 0 {
-				<-p.Output
-			}
+			// if len(p.Output) > 0 {
+			// 	<-p.Output
+			// }
 			p.Output <- result
 			if p.config.Print {
 				fmt.Printf("Program %d: Output: %v\n", p.id, result)

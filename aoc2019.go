@@ -13,6 +13,7 @@ import (
 	"github.com/qoeg/aoc2019/day08"
 	"github.com/qoeg/aoc2019/day09"
 	"github.com/qoeg/aoc2019/day10"
+	"github.com/qoeg/aoc2019/day11"
 )
 
 type day struct {
@@ -32,11 +33,12 @@ var days = []day{
 	{8, day08.Answer1, day08.Answer2},
 	{9, day09.Answer1, day09.Answer2},
 	{10, day10.Answer1, day10.Answer2},
+	{11, day11.Answer1, day11.Answer2},
 }
 
 func main() {
 	//TODO: add CLI for selecting days
-	selected := []int{}
+	selected := []int{1,2,3,4,5,6,7,8,9,10,11}
 
 	var d day
 	var found bool
