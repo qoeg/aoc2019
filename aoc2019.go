@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 
 	"github.com/qoeg/aoc2019/day01"
 	"github.com/qoeg/aoc2019/day02"
@@ -15,52 +15,36 @@ import (
 	"github.com/qoeg/aoc2019/day10"
 	"github.com/qoeg/aoc2019/day11"
 	"github.com/qoeg/aoc2019/day12"
+	"github.com/qoeg/aoc2019/day13"
 )
 
-type day struct {
-	key int
-	ans1 func() string
-	ans2 func() string
-}
-
-var days = []day{
-	{1, day01.Answer1, day01.Answer2},
-	{2, day02.Answer1, day02.Answer2},
-	{3, day03.Answer1, day03.Answer2},
-	{4, day04.Answer1, day04.Answer2},
-	{5, day05.Answer1, day05.Answer2},
-	{6, day06.Answer1, day06.Answer2},
-	{7, day07.Answer1, day07.Answer2},
-	{8, day08.Answer1, day08.Answer2},
-	{9, day09.Answer1, day09.Answer2},
-	{10, day10.Answer1, day10.Answer2},
-	{11, day11.Answer1, day11.Answer2},
-	{12, day12.Answer1, day12.Answer2},
+var days = map[int]day{
+	1: {1, day01.Answer1, day01.Answer2},
+	2: {2, day02.Answer1, day02.Answer2},
+	3: {3, day03.Answer1, day03.Answer2},
+	4: {4, day04.Answer1, day04.Answer2},
+	5: {5, day05.Answer1, day05.Answer2},
+	6: {6, day06.Answer1, day06.Answer2},
+	7: {7, day07.Answer1, day07.Answer2},
+	8: {8, day08.Answer1, day08.Answer2},
+	9: {9, day09.Answer1, day09.Answer2},
+	10: {10, day10.Answer1, day10.Answer2},
+	11: {11, day11.Answer1, day11.Answer2},
+	12: {12, day12.Answer1, day12.Answer2},
+	13: {13, day13.Answer1, day13.Answer2},
 }
 
 func main() {
-	//TODO: add CLI for selecting days
-	selected := []int{}
+	var requested dayFlags
+	flag.Var(&requested, "days", "A list of days to run")
+    flag.Parse()
 
-	var d day
-	var found bool
-	for _, d = range days {
-		for _, i := range selected {
-			if d.key == i {
-				run(d)
-				found = true
-			}
-		}
+	if len(requested) == 0 {
+		days[len(days)].run()
+		return
 	}
 
-	// none selected, run latest
-	if !found {
-		run(d)
+	for _, d := range []day(requested) {
+		d.run()
 	}
-}
-
-func run(d day) {
-	fmt.Printf("------- Day %d -------\n", d.key)
-	fmt.Printf("Puzzle 1 Answer: %s\n", d.ans1())
-	fmt.Printf("Puzzle 2 Answer: %s\n", d.ans2())
 }

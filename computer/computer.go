@@ -65,10 +65,48 @@ func (p *Program) Run64(intcode []int64) (result int64) {
 	return run(p)
 }
 
+func (p *Program) interpret(code int64) instruction {
+	var parameters int
+	var parameterModes []int
+	
+	opcode := code % 100
+
+	switch opcode {
+	case 3, 4, 9:
+		parameters = 1
+		parameterModes = make([]int, parameters)
+		parameterModes[0] = int((code / 100) % 10)
+	case 5, 6:
+		parameters = 2
+		parameterModes = make([]int, parameters)
+		parameterModes[0] = int((code / 100) % 10)
+		parameterModes[1] = int((code / 1000) % 10)
+	case 1, 2, 7, 8:
+		parameters = 3
+		parameterModes = make([]int, parameters)
+		parameterModes[0] = int((code / 100) % 10)
+		parameterModes[1] = int((code / 1000) % 10)
+		parameterModes[2] = int((code / 10000) % 10)
+	case 99:
+		parameters = 0
+		parameterModes = make([]int, 0)
+	default:
+		panic("Unknown operation.")
+	}
+
+	return instruction{
+		p,
+		opcode,
+		parameters,
+		parameterModes,
+	}
+}
+
 func run(p *Program) (result int64) {
 	for {
 		jump := false
-		instr := newInstruction(p, p.memory[p.pointer])
+		instr := p.interpret(p.memory[p.pointer])
+
 		if instr.opcode == 99 {
 			p.Exit <- result
 			if p.config.Print {
@@ -100,9 +138,6 @@ func run(p *Program) (result int64) {
 			}
 		case 4:
 			result = instr.read(1)
-			// if len(p.Output) > 0 {
-			// 	<-p.Output
-			// }
 			p.Output <- result
 			if p.config.Print {
 				fmt.Printf("Program %d: Output: %v\n", p.id, result)

@@ -7,43 +7,6 @@ type instruction struct {
 	parameterModes []int
 }
 
-func newInstruction(program *Program, value int64) instruction {
-	var parameters int
-	var parameterModes []int
-	
-	opcode := value % 100
-
-	switch opcode {
-	case 3, 4, 9:
-		parameters = 1
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((value / 100) % 10)
-	case 5, 6:
-		parameters = 2
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((value / 100) % 10)
-		parameterModes[1] = int((value / 1000) % 10)
-	case 1, 2, 7, 8:
-		parameters = 3
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((value / 100) % 10)
-		parameterModes[1] = int((value / 1000) % 10)
-		parameterModes[2] = int((value / 10000) % 10)
-	case 99:
-		parameters = 0
-		parameterModes = make([]int, 0)
-	default:
-		panic("Unknown operation.")
-	}
-
-	return instruction{
-		program,
-		opcode,
-		parameters,
-		parameterModes,
-	}
-}
-
 func (in instruction) read(num int) (value int64) {
 	value = in.program.memory[in.program.pointer+int64(num)]
 
