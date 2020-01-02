@@ -49,7 +49,7 @@ func (p *Program) Run(intcode []int) (result int) {
 		p.memory[i] = int64(code)
 	}
 
-	return int(run(p))
+	return int(p.exec())
 }
 
 // Run64 runs the computer program with 64-bit intcode
@@ -62,148 +62,137 @@ func (p *Program) Run64(intcode []int64) (result int64) {
 	p.memory = make([]int64, memorySize)
 	copy(p.memory, intcode)
 
-	return run(p)
+	return p.exec()
 }
 
-func (p *Program) interpret(code int64) instruction {
-	var parameters int
-	var parameterModes []int
-	
-	opcode := code % 100
-
-	switch opcode {
-	case 3, 4, 9:
-		parameters = 1
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((code / 100) % 10)
-	case 5, 6:
-		parameters = 2
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((code / 100) % 10)
-		parameterModes[1] = int((code / 1000) % 10)
-	case 1, 2, 7, 8:
-		parameters = 3
-		parameterModes = make([]int, parameters)
-		parameterModes[0] = int((code / 100) % 10)
-		parameterModes[1] = int((code / 1000) % 10)
-		parameterModes[2] = int((code / 10000) % 10)
-	case 99:
-		parameters = 0
-		parameterModes = make([]int, 0)
-	default:
-		panic("Unknown operation.")
-	}
-
-	return instruction{
-		p,
-		opcode,
-		parameters,
-		parameterModes,
-	}
-}
-
-func run(p *Program) (result int64) {
+func (p *Program) exec() (result int64) {
 	for {
-		jump := false
-		instr := p.interpret(p.memory[p.pointer])
+		instr := newInstruction(p.memory[p.pointer])
+
+		if p.config.Print {
+			fmt.Printf("Program %d: @ %v, opcode = %v\n", p.id, p.pointer, instr.opcode)
+		}
 
 		if instr.opcode == 99 {
-			p.Exit <- result
-			if p.config.Print {
-				fmt.Printf("Program %d: Halt: Exiting program.\n", p.id)
-			}
-			break
+			break;
 		}
 
 		switch instr.opcode {
 		case 1:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			pos := instr.write(3, param1 + param2)
-			if p.config.Print {
-				fmt.Printf("Program %d: Add: *%v = %v + %v\n", p.id, pos, param1, param2)
-			}
+			p.add(instr)
 		case 2:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			pos := instr.write(3, param1 * param2)
-			if p.config.Print {
-				fmt.Printf("Program %d: Mult: *%v = %v * %v\n", p.id, pos, param1, param2)
-			}
+			p.mult(instr)
 		case 3:
-			in := <-p.Input
-			pos := instr.write(1, in)
-			if p.config.Print {
-				fmt.Printf("Program %d: Input: *%v = %v\n", p.id, pos, in)
-			}
+			value := <-p.Input
+			p.input(instr, value)
 		case 4:
-			result = instr.read(1)
+			result = p.output(instr)
 			p.Output <- result
-			if p.config.Print {
-				fmt.Printf("Program %d: Output: %v\n", p.id, result)
-			}
 		case 5:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			if param1 != 0 {
-				p.pointer = param2
-				jump = true
-				if p.config.Print {
-					fmt.Printf("Program %d: Jump: %v\n", p.id, param2)
-				}
-			}
+			p.jump(instr, func(v int64) bool {return v != 0})
 		case 6:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			if param1 == 0 {
-				p.pointer = param2
-				jump = true
-				if p.config.Print {
-					fmt.Printf("Program %d: Jump: %v\n", p.id, param2)
-				}
-			}
+			p.jump(instr, func(v int64) bool {return v == 0})
 		case 7:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			if param1 < param2 {
-				pos := instr.write(3, 1)
-				if p.config.Print {
-					fmt.Printf("Program %d: LT: *%v = (%v < %v) // =%v\n", p.id, pos, param1, param2, 1)
-				}
-			} else {
-				pos := instr.write(3, 0)
-				if p.config.Print {
-					fmt.Printf("Program %d: LT: *%v = (%v < %v) // =%v\n", p.id, pos, param1, param2, 0)
-				}
-			}
+			p.comp(instr, func(v1, v2 int64) bool {return v1 < v2})
 		case 8:
-			param1 := instr.read(1)
-			param2 := instr.read(2)
-			if param1 == param2 {
-				pos := instr.write(3, 1)
-				if p.config.Print {
-					fmt.Printf("Program %d: EQ: *%v = (%v == %v) // =%v\n", p.id, pos, param1, param2, 1)
-				}
-			} else {
-				pos := instr.write(3, 0)
-				if p.config.Print {
-					fmt.Printf("Program %d: EQ: *%v = (%v == %v) // =%v\n", p.id, pos, param1, param2, 0)
-				}
-			}
+			p.comp(instr, func(v1, v2 int64) bool {return v1 == v2})
 		case 9:
-			param1 := instr.read(1)
-			p.relBase += param1
-			if p.config.Print {
-				fmt.Printf("Program %d: RB: += %v // =%v\n", p.id, param1, p.relBase)
-			}
+			p.rebase(instr)
 		default:
 			panic("Unknown operation.")
 		}
-		
-		if !jump {
-			p.pointer += int64(instr.parameters + 1)
-		}
+	}
+
+	p.halt(result)
+	return result
+}
+
+func (p *Program) add(in instruction) {
+	val1 := in.read(p, 1)
+	val2 := in.read(p, 2)
+	addr := in.write(p, 3, val1 + val2)
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: Add: *%v = %v + %v\n", p.id, addr, val1, val2)
+	}
+}
+
+func (p *Program) mult(in instruction) {
+	val1 := in.read(p, 1)
+	val2 := in.read(p, 2)
+	addr := in.write(p, 3, val1 * val2)
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: Mult: *%v = %v * %v\n", p.id, addr, val1, val2)
+	}
+}
+
+func (p *Program) input(in instruction, value int64) {
+	pos := in.write(p, 1, value)
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: Input: *%v = %v\n", p.id, pos, value)
+	}
+}
+
+func (p *Program) output(in instruction) (result int64) {
+	result = in.read(p, 1)
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: Output: %v\n", p.id, result)
 	}
 
 	return result
+}
+
+func (p *Program) jump(in instruction, predicate func(int64) bool) {
+	val1 := in.read(p, 1)
+	val2 := in.read(p, 2)
+
+	if predicate(val1) {
+		p.pointer = val2
+		if p.config.Print {
+			fmt.Printf("Program %d: JUMP: %v\n", p.id, val2)
+		}
+	} else {
+		p.pointer += in.len()
+	}
+}
+
+func (p *Program) comp(in instruction, comparator func(int64, int64) bool) {
+	val1 := in.read(p, 1)
+	val2 := in.read(p, 2)
+
+	var res = 0
+	if comparator(val1, val2) {
+		res = 1
+	}
+
+	pos := in.write(p, 3, int64(res))
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: COMP: *%v = %v\n", p.id, pos, res)
+	}
+}
+
+func (p *Program) rebase(in instruction) {
+	val1 := in.read(p, 1)
+	p.relBase += val1
+	p.pointer += in.len()
+
+	if p.config.Print {
+		fmt.Printf("Program %d: RB: += %v // =%v\n", p.id, val1, p.relBase)
+	}
+}
+
+func (p *Program) halt(value int64) {
+	p.Exit <- value
+	if p.config.Print {
+		fmt.Printf("Program %d: Halt: Exiting program.\n", p.id)
+	}
 }

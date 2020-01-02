@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"flag"
 
 	"github.com/qoeg/aoc2019/day01"
@@ -35,16 +36,36 @@ var days = map[int]day{
 }
 
 func main() {
+	var all bool
+	flag.BoolVar(&all, "all", false, "Setting to true will run all days")
 	var requested dayFlags
 	flag.Var(&requested, "days", "A list of days to run")
     flag.Parse()
 
-	if len(requested) == 0 {
-		days[len(days)].run()
+	if all {
+		for _, d := range sortedDays(days) {
+			days[d].run()
+		}
 		return
 	}
 
-	for _, d := range []day(requested) {
-		d.run()
+	if len(requested) > 0 {
+		for _, d := range []day(requested) {
+			d.run()
+		}
+		return
 	}
+	
+	days[len(days)].run()
+}
+
+func sortedDays(days map[int]day) []int {
+	keys := make([]int, len(days))
+	i := 0
+	for k := range days {
+		keys[i] = k
+		i++
+	}
+	sort.Ints(keys)
+	return keys
 }

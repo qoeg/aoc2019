@@ -1,39 +1,91 @@
 package computer
 
-type instruction struct {
-	program *Program
-	opcode int64
-	parameters int
-	parameterModes []int
+import (
+	"strconv"
+)
+
+type parameter struct {
+	num int
+	mode int
 }
 
-func (in instruction) read(num int) (value int64) {
-	value = in.program.memory[in.program.pointer+int64(num)]
+func (p parameter) read(pm *Program) (value int64) {
+	value = pm.memory[pm.pointer+int64(p.num)]
 
-	switch in.parameterModes[num-1] {
+	switch p.mode {
 	case 0: // position mode
-		value = in.program.memory[value]
+		value = pm.memory[value]
 	case 1: // immediate mode
 		// use literal value
 	case 2: // relative mode
-		value = in.program.memory[in.program.relBase+value]
+		value = pm.memory[pm.relBase+value]
 	}
 
 	return value
 }
 
-func (in instruction) write(num int, value int64) (position int64) {
-	position = in.program.memory[in.program.pointer+int64(num)]
+func (p parameter) write(pm *Program, value int64) (addr int64) {
+	addr = pm.memory[pm.pointer+int64(p.num)]
 
-	switch in.parameterModes[num-1] {
+	switch p.mode {
 	case 0: // position mode
-		in.program.memory[position] = value
+		pm.memory[addr] = value
 	case 1: // immediate mode
 		panic("Cannot write to immediate mode parameter")
 	case 2: // relative mode
-		position = in.program.relBase+position
-		in.program.memory[position] = value
+		pm.memory[pm.relBase+addr] = value
 	}
 
-	return position
+	return addr
+}
+
+type instruction struct {
+	opcode int64
+	params []parameter
+}
+
+func newInstruction(code int64) instruction {
+	var instr instruction
+	instr.opcode = code % 100
+
+	switch instr.opcode {
+	case 3, 4, 9:
+		instr.params = make([]parameter, 1)
+		instr.params[0] = parameter{1, int((code / 100) % 10)}
+	case 5, 6:
+		instr.params = make([]parameter, 2)
+		instr.params[0] = parameter{1, int((code / 100) % 10)}
+		instr.params[1] = parameter{2, int((code / 1000) % 10)}
+	case 1, 2, 7, 8:
+		instr.params = make([]parameter, 3)
+		instr.params[0] = parameter{1, int((code / 100) % 10)}
+		instr.params[1] = parameter{2, int((code / 1000) % 10)}
+		instr.params[2] = parameter{3, int((code / 10000) % 10)}
+	case 99:
+		instr.params = make([]parameter, 0)
+	default:
+		panic("Unknown operation.")
+	}
+
+	return instr
+}
+
+func (in instruction) len() int64 {
+	return int64(len(in.params) + 1)
+}
+
+func (in instruction) param(num int) parameter {
+	if len(in.params) > (num-1) {
+		return in.params[num-1]
+	}
+
+	panic("Instruction does not contain param " + strconv.Itoa(num))
+}
+
+func (in instruction) read(p *Program, param int) int64 {
+	return in.param(param).read(p)
+}
+
+func (in instruction) write(p *Program, param int, value int64) int64 {
+	return in.param(param).write(p, value)
 }
